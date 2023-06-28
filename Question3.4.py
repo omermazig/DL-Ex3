@@ -52,17 +52,16 @@ def training_loop(model, X_tensor, y_tensor):
         empirical_e2e_loss_list.append(empirical_loss.detach())
         calculated_e2e_loss_list.append(calculated_loss.detach())
 
-        # TODO - Calculate this from `calculated_loss` gradients and not from `model.parameters` gradients
-        # delta_l = calculate_delta_l(model, N)
-        # Update calculated_e2e_matrix
+        # Update W(t+1) from W(t)
         offset = torch.zeros_like(calculated_e2e_matrix)
         for j in range(1, N + 1):
             offset += calculate_matrix_power(WtWtT, (j - 1) / N) * \
                      delta_l * \
                      calculate_matrix_power(WtTWt, (N - j) / N)
+
         with torch.no_grad():
-            # Update W(t+1) from W(t)
             calculated_e2e_matrix -= learning_rate * offset
+        # Detach matrix so it wouldn't be related to previous calculations anymore
         calculated_e2e_matrix = calculated_e2e_matrix.clone().detach().requires_grad_(True)
 
         # Print the loss every 100 epochs
@@ -75,7 +74,6 @@ def training_loop(model, X_tensor, y_tensor):
 
 
 def main():
-    torch.autograd.set_detect_anomaly(True)
     torch.manual_seed(42)
     model2 = LinearNetDepth2(1, 1, is_bias=False)
     model3 = LinearNetDepth3(1, 1, is_bias=False)
