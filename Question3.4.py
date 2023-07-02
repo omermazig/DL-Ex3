@@ -72,15 +72,16 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
 
 def main():
     torch.manual_seed(42)
-    model2 = LinearNetDepth2(1, 1, is_bias=False)
-    model3 = LinearNetDepth3(1, 1, is_bias=False)
+
+    input_size = 10
+    model2 = LinearNetDepth2(input_size, 1, is_bias=False)
+    model3 = LinearNetDepth3(input_size, 1, is_bias=False)
 
     models = [model2, model3]
     model_empirical_e2e_matrix_list = []
     model_calculated_e2e_matrix_list = []
 
     n_samples = 10000
-    input_size = 100
     X_tensor, y_tensor, X, y = generate_data(n_samples=(n_samples, input_size))
 
     for i, model in enumerate(models, start=2):
