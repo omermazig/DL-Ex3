@@ -23,14 +23,15 @@ def generate_data(n_samples=100, input_size=1):
     X = np.random.uniform(low=0, high=10, size=(n_samples, input_size))
 
     # Generate y values with some random noise
-    y = 3 * X + 2 + np.random.normal(scale=3, size=(n_samples, input_size))
+    y = 3 * np.average(X, 1, keepdims=True) + 2 + np.random.normal(scale=3, size=(n_samples, 1))
 
-    # Plot the data
-    plt.scatter(X, y, s=10)
-    plt.xlabel('X')
-    plt.ylabel('y')
-    plt.title('Synthetic Regression Dataset')
-    plt.savefig('Synthetic Regression Dataset')
+    if input_size == 1:
+        # Plot the data
+        plt.scatter(X, y, s=10)
+        plt.xlabel('X')
+        plt.ylabel('y')
+        plt.title('Synthetic Regression Dataset')
+        plt.savefig('Synthetic Regression Dataset')
 
     # Convert the dataset to tensors
     X_tensor = torch.from_numpy(X).float()
