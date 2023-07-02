@@ -26,8 +26,9 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
 
     for epoch in range(num_epochs):
         # Calculate consts for update of calculated_e2e_matrix, before the model changes
-        WtWtT = torch.mm(calculated_e2e_matrix, calculated_e2e_matrix.T).detach()
-        WtTWt = torch.mm(calculated_e2e_matrix.T, calculated_e2e_matrix).detach()
+        with torch.no_grad():
+            WtWtT = torch.mm(calculated_e2e_matrix, calculated_e2e_matrix.T).detach()
+            WtTWt = torch.mm(calculated_e2e_matrix.T, calculated_e2e_matrix).detach()
 
         # Forward pass
         y_empirical = model(X_tensor)
@@ -52,9 +53,8 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
         # Update W(t+1) from W(t)
         offset = torch.zeros_like(calculated_e2e_matrix)
         for j in range(1, N + 1):
-            offset += calculate_matrix_power(WtWtT, (j - 1) / N) * \
-                     delta_l * \
-                     calculate_matrix_power(WtTWt, (N - j) / N)
+            with torch.no_grad():
+                offset += torch.mm(torch.mm(calculate_matrix_power(WtWtT, (j - 1) / N), delta_l), calculate_matrix_power(WtTWt, (N - j) / N))
 
         with torch.no_grad():
             calculated_e2e_matrix -= learning_rate * offset
