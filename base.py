@@ -12,7 +12,7 @@ HIDDEN_SIZE = 5
 def calculate_matrix_power(A, x: Union[int, float]):
     """ Calculates A^x like we learned in class"""
     U, S, V = torch.svd(A)
-    return U * (S ** x) * V.T
+    return U @ torch.diag_embed(torch.pow(S, x)) @ V.T
 
 
 def generate_data(n_samples=100):
