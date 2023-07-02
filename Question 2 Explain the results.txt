@@ -1,0 +1,7 @@
+We expirimented on the California Housing dataset, with networks with depth 2/3 as instructed, 5 hidden layers, and no bais (Because we want to compare them with the e2e dynamics, which does not include bias).
+
+The results we got - which can be seen in the graph - are that the loss abtained by both models (2/3 layers) was about the same after 50,000 epochs, and the "loss" abtained by just calculating the e2e dynamics matrix, was also about the same for 2/3 layers.
+
+This makes sense because the dataset is not really difficult to clasify, so you don't really need the extra layer, and 2 or 3 layers function about the same.
+
+We can also see that the loss achived by the e2e-dynamic calculation was really close to the loss achived by the actual model! It should by exactly the same - and it actually was, when I accidentlly used inputs of size 1 (instead of 8 with the California Housing dataset) - but we'll assume that this derives from too large learning rate, not enough epochs, or numaric instabillity.
