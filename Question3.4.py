@@ -7,16 +7,13 @@ from torch import nn, optim
 from base import LinearNetDepth2, LinearNetDepth3, generate_data, calculate_matrix_power
 
 
-def training_loop(model, X_tensor, y_tensor):
+def training_loop(model, X_tensor, y_tensor, num_epochs):
     # Define the loss function
     loss_function = nn.MSELoss()
 
     # Define the optimizer
     learning_rate = 0.0001
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
-
-    # Training loop
-    num_epochs = 100
 
     N = len(list((model.children())))
     empirical_e2e_loss_list = []
@@ -87,7 +84,8 @@ def main():
     X_tensor, y_tensor, X, y = generate_data(n_samples=(n_samples, input_size))
 
     for i, model in enumerate(models, start=2):
-        empirical_e2e_matrix_list, calculated_e2e_matrix_list = training_loop(model, X_tensor, y_tensor)
+        num_epochs = 200
+        empirical_e2e_matrix_list, calculated_e2e_matrix_list = training_loop(model, X_tensor, y_tensor, num_epochs)
         model_empirical_e2e_matrix_list.append(empirical_e2e_matrix_list)
         model_calculated_e2e_matrix_list.append(calculated_e2e_matrix_list)
 
