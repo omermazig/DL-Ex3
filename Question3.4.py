@@ -23,15 +23,14 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
 
     # Calculate initial e2e matrix from the results after the step
     calculated_e2e_matrix = functools.reduce(lambda a, b: torch.mm(
-        b.clone().detach(), a.clone().detach()
+        b.detach(), a.detach()
     ), model.parameters()).requires_grad_(True)
 
     for epoch in range(num_epochs):
         # Calculate consts for update of calculated_e2e_matrix, before the model changes
         with torch.no_grad():
-            WtWtT = torch.mm(calculated_e2e_matrix, calculated_e2e_matrix.T).detach()
-            WtTWt = torch.mm(calculated_e2e_matrix.T, calculated_e2e_matrix).detach()
-
+            WtWtT = torch.mm(calculated_e2e_matrix, calculated_e2e_matrix.T)
+            WtTWt = torch.mm(calculated_e2e_matrix.T, calculated_e2e_matrix)
         # Forward pass
         y_empirical = model(X_tensor)
         y_calculated = torch.mm(calculated_e2e_matrix, X_tensor.T).T
@@ -49,19 +48,18 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
         empirical_loss.backward()
         optimizer.step()
 
-        empirical_e2e_loss_list.append(empirical_loss.detach())
-        calculated_e2e_loss_list.append(calculated_loss.detach())
-
-        # Update W(t+1) from W(t)
-        offset = torch.zeros_like(calculated_e2e_matrix)
-        for j in range(1, N + 1):
-            with torch.no_grad():
-                offset += torch.mm(torch.mm(calculate_matrix_power(WtWtT, (j - 1) / N), delta_l), calculate_matrix_power(WtTWt, (N - j) / N))
+        empirical_e2e_loss_list.append(empirical_loss.item())
+        calculated_e2e_loss_list.append(calculated_loss.item())
 
         with torch.no_grad():
-            calculated_e2e_matrix -= learning_rate * offset
-        # Detach matrix so it wouldn't be related to previous calculations anymore
-        calculated_e2e_matrix = calculated_e2e_matrix.clone().detach().requires_grad_(True)
+            # Update W(t+1) from W(t)
+            offset = torch.zeros_like(calculated_e2e_matrix)
+            for j in range(1, N + 1):
+                offset += calculate_matrix_power(WtWtT, (j - 1) / N) @ delta_l @ calculate_matrix_power(WtTWt, (N - j) / N)
+
+            next_calculated_e2e_matrix = (calculated_e2e_matrix - learning_rate * offset)
+
+        calculated_e2e_matrix = next_calculated_e2e_matrix.requires_grad_(True)
 
         # Print the loss every 100 epochs
         if (epoch + 1) % 5 == 0:
