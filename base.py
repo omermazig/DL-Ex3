@@ -15,15 +15,15 @@ def calculate_matrix_power(A, x: Union[int, float]):
     return U @ torch.diag_embed(torch.pow(S, x)) @ V.T
 
 
-def generate_data(n_samples=100):
+def generate_data(n_samples=100, input_size=1):
     # Set random seed for reproducibility
     np.random.seed(42)
 
     # Generate random X values
-    X = np.random.uniform(low=0, high=10, size=n_samples)
+    X = np.random.uniform(low=0, high=10, size=(n_samples, input_size))
 
     # Generate y values with some random noise
-    y = 3 * X + 2 + np.random.normal(scale=3, size=n_samples)
+    y = 3 * X + 2 + np.random.normal(scale=3, size=(n_samples, input_size))
 
     # Plot the data
     plt.scatter(X, y, s=10)
@@ -31,9 +31,6 @@ def generate_data(n_samples=100):
     plt.ylabel('y')
     plt.title('Synthetic Regression Dataset')
     plt.savefig('Synthetic Regression Dataset')
-
-    X = X.reshape(-1, 1)
-    y = y.reshape(-1, 1)
 
     # Convert the dataset to tensors
     X_tensor = torch.from_numpy(X).float()

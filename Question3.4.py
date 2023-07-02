@@ -82,7 +82,7 @@ def main():
     model_calculated_e2e_matrix_list = []
 
     n_samples = 10000
-    X_tensor, y_tensor, X, y = generate_data(n_samples=(n_samples, input_size))
+    X_tensor, y_tensor, X, y = generate_data(n_samples=n_samples, input_size=input_size)
 
     for i, model in enumerate(models, start=2):
         num_epochs = 100
