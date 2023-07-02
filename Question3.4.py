@@ -2,9 +2,11 @@ import functools
 
 import torch
 from matplotlib import pyplot as plt
+from sklearn.datasets import fetch_california_housing
+from sklearn.preprocessing import StandardScaler
 from torch import nn, optim
 
-from base import LinearNetDepth2, LinearNetDepth3, generate_data, calculate_matrix_power
+from base import LinearNetDepth2, LinearNetDepth3, calculate_matrix_power
 
 
 def training_loop(model, X_tensor, y_tensor, num_epochs):
@@ -72,17 +74,27 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
 
 def main():
     torch.manual_seed(42)
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    n_samples = 100000
 
-    input_size = 1
-    model2 = LinearNetDepth2(input_size, 1, is_bias=False)
-    model3 = LinearNetDepth3(input_size, 1, is_bias=False)
+    california_housing = fetch_california_housing()
+    X, y = california_housing.data[:n_samples], california_housing.target[:n_samples]
+    # Normalize X
+    scaler = StandardScaler()
+    X = scaler.fit_transform(X)
+
+    # Convert to tensors
+    X_tensor = torch.tensor(X, dtype=torch.float32).to(device)
+    y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1).to(device)
+
+    # Initialize models
+    input_size = X_tensor.shape[1]
+    model2 = LinearNetDepth2(input_size, 1, is_bias=False).to(device)
+    model3 = LinearNetDepth3(input_size, 1, is_bias=False).to(device)
 
     models = [model2, model3]
     model_empirical_e2e_matrix_list = []
     model_calculated_e2e_matrix_list = []
-
-    n_samples = 10000
-    X_tensor, y_tensor, X, y = generate_data(n_samples=n_samples, input_size=input_size)
 
     for i, model in enumerate(models, start=2):
         num_epochs = 500
