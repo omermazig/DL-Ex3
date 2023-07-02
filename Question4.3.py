@@ -23,8 +23,9 @@ def training_loop(model_trained, X, y, num_epochs, learning_rate, criterion):
     optimizer_train = optim.SGD(model_trained.parameters(), lr=learning_rate)
 
     # Training loop
-    u_t_empirical = []
-    diffs_emp = []
+    with torch.no_grad():
+        u_t_empirical = [model_trained(X)]
+        diffs_emp = [criterion(u_t_empirical[0], y)]
 
     for epoch in tqdm(range(num_epochs)):
         model_trained.train()
@@ -73,7 +74,7 @@ def main():
     lr = 0.0001
     H = relu_ntk(X.unsqueeze(0), X.unsqueeze(1), device)
 
-    plt.figure(figsize=(8, 6))
+    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
     for n, linestyle in zip([10, 50, 100], ['-', '--', ':']):
         model_trained = ShallowActivatedNet(X.shape[-1], n, device)
         with torch.no_grad():
@@ -82,24 +83,32 @@ def main():
         criterion = nn.MSELoss()
         u_t_trains, diffs_emp = training_loop(model_trained, X, y, num_epochs, lr, criterion)
 
-        u_t_calcs = []
-        diffs_calc = []
+        u_t_calcs = [copy.deepcopy(u_t_calc)]
+        diffs_calc = [criterion(u_t_calc, y)]
         for epoch in range(num_epochs):
             u_dot = - H @ (u_t_calc - y)
             u_t_calc += lr * u_dot / m
-            u_t_calcs.append(u_t_calc)
+            u_t_calcs.append(copy.deepcopy(u_t_calc))
             diffs_calc.append(criterion(u_t_calc, y))
 
-        plt.plot([diff.detach().cpu() for diff in diffs_emp],
-                 label=f"loss for n={n}, empirical", color='blue', linestyle=linestyle)
-        plt.plot([diff.detach().cpu() for diff in diffs_calc],
-                 label=f"loss for n={n}, calculated", color='orange', linestyle=linestyle)
+        axs[0].plot([diff.detach().cpu() for diff in diffs_emp],
+                 label=f"n={n}, empirical", color='blue', linestyle=linestyle)
+        axs[0].plot([diff.detach().cpu() for diff in diffs_calc],
+                 label=f"n={n}, calculated", color='orange', linestyle=linestyle)
 
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Losses for Different Network Widths')
-    plt.legend()
-    plt.show()
+        axs[1].plot([((u_t_calcs[j] - u_t_trains[j]).norm()
+                      ).detach().cpu() for j in range(len(u_t_calcs))],
+                 label=f"n={n}", color='green', linestyle=linestyle)
+
+    axs[0].set_xlabel('Epoch')
+    axs[0].set_ylabel('Loss')
+    axs[0].set_title('Losses for Different Network Widths')
+    axs[0].legend()
+    axs[1].set_xlabel('Epoch')
+    axs[1].set_ylabel('L2 Distance')
+    axs[1].set_title('L2 Distance Between u_t Values')
+    axs[1].legend()
+    fig.show()
 
 
 if __name__ == '__main__':
