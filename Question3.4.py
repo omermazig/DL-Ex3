@@ -82,7 +82,9 @@ def main():
     model_empirical_e2e_matrix_list = []
     model_calculated_e2e_matrix_list = []
 
-    X_tensor, y_tensor, X, y = generate_data(n_samples=(10000, 100))
+    n_samples = 10000
+    input_size = 100
+    X_tensor, y_tensor, X, y = generate_data(n_samples=(n_samples, input_size))
 
     for i, model in enumerate(models, start=2):
         empirical_e2e_matrix_list, calculated_e2e_matrix_list = training_loop(model, X_tensor, y_tensor)
