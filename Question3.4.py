@@ -12,7 +12,7 @@ def training_loop(model, X_tensor, y_tensor, num_epochs):
     loss_function = nn.MSELoss()
 
     # Define the optimizer
-    learning_rate = 0.0001
+    learning_rate = 0.00005
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     N = len(list((model.children())))
